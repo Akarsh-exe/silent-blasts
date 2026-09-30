@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silent Blasts — Minecraft Mod</title>
+  <meta name="description" content="A lightweight client-side Minecraft mod that filters specific blast sound events." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b0c10'/><text x='50' y='68' font-size='52' font-weight='700' fill='%237c9cff' text-anchor='middle' font-family='system-ui'>SB</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --bg-elev: #14161c;
+      --bg-elev-2: #1a1d24;
+      --border: #23262e;
+      --border-strong: #2d313b;
+      --text: #e7e9ee;
+      --text-dim: #9ba1b0;
+      --text-mute: #6b7280;
+      --accent: #7c9cff;
+      --accent-hover: #a0b7ff;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: -240px;
+      left: 50%;
+      width: 900px;
+      height: 500px;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at center, rgba(124, 156, 255, 0.10), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 24px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---------- HEADER ---------- */
+    .hero { margin-bottom: 48px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 20px;
+    }
+    .badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 16.5px;
+      color: var(--text-dim);
+      line-height: 1.65;
+      max-width: 540px;
+    }
+
+    /* ---------- DOWNLOAD CARD ---------- */
+    .download {
+      display: block;
+      padding: 28px 28px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 48px;
+    }
+
+    .download:hover {
+      border-color: var(--accent);
+      background: var(--bg-elev-2);
+    }
+
+    .download-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .download-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: rgba(124, 156, 255, 0.12);
+      border: 1px solid rgba(124, 156, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .download-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+    }
+
+    .download-meta {
+      font-size: 13px;
+      color: var(--text-mute);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .download-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .file-info {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--accent);
+      color: #0b0c10;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: transparent;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      background: var(--bg-elev-2);
+    }
+
+    /* ---------- SECTIONS ---------- */
+    section { margin-bottom: 44px; }
+
+    h2 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--text-mute);
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    .feature-icon {
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .feature strong { color: var(--text); font-weight: 600; }
+
+    /* install steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      counter-reset: step;
+    }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      font-size: 14.5px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    .step-num {
+      counter-increment: step;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--bg-elev);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-num::before { content: counter(step); }
+
+    .step code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 5px;
+      color: var(--accent);
+    }
+
+    /* requirements box */
+    .reqs {
+      padding: 18px 20px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .reqs-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .reqs-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .reqs-row:first-child { padding-top: 0; }
+
+    .reqs-key {
+      color: var(--text-mute);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .reqs-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+      font-size: 13.5px;
+      text-align: right;
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 13px;
+      color: var(--text-mute);
+    }
+
+    footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      .container { padding: 56px 20px 48px; }
+      .download { padding: 22px; }
+      .download-action { flex-direction: column; align-items: stretch; }
+      .btn, .btn-secondary { justify-content: center; }
+      .btn span, .btn-secondary span { display: inline; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="hero">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Fabric · 1.21
+      </div>
+      <h1>Silent Blasts</h1>
+      <p class="subtitle">
+        A lightweight, client-side Minecraft mod that filters specific blast
+        sound events. Reduces audio clutter during fast gameplay without
+        affecting gameplay mechanics, hitboxes, or anything server-side.
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CHANGE: update the href and file name below            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="download">
+      <div class="download-head">
+        <div class="download-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="download-title">Silent Blasts</div>
+          <div class="download-meta">Fabric 1.21 · v1.0.0</div>
+        </div>
+      </div>
+
+      <div class="download-action">
+        <div class="file-info">silent-blasts-1.0.0.jar · &lt; 1 MB</div>
+        <a class="btn" href="silent-blasts-1.0.0.jar" download>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download
+        </a>
+      </div>
+    </div>
+
+    <section>
+      <h2>What it does</h2>
+      <div class="features">
+        <div class="feature">
+          <span class="feature-icon">●</span>
+          <span><strong>Filters blast sounds</strong> — mutes specific sound events locally on your client.</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">●</span>
+          <span><strong>Client-side only</strong> — no server changes, no gameplay effects, no hitbox or damage changes.</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">●</span>
+          <span><strong>Lightweight</strong> — small jar, minimal performance impact, no dependencies beyond Fabric API.</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Requirements</h2>
+      <div class="reqs">
+        <div class="reqs-row">
+          <span class="reqs-key">Minecraft</span>
+          <span class="reqs-val">1.21</span>
+        </div>
+        <div class="reqs-row">
+          <span class="reqs-key">Loader</span>
+          <span class="reqs-val">Fabric</span>
+        </div>
+        <div class="reqs-row">
+          <span class="reqs-key">Dependency</span>
+          <span class="reqs-val">Fabric API</span>
+        </div>
+        <div class="reqs-row">
+          <span class="reqs-key">Side</span>
+          <span class="reqs-val">Client</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Fair Play &amp; Compliance</h2>
+      <div class="features">
+        <div class="feature">
+          <span class="feature-icon">●</span>
+          <span><strong>No unfair advantage</strong> — This mod only filters sound output on your client. It does not reveal hidden information, automate gameplay, alter hitboxes, change damage, or modify any server-side mechanics.</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">●</span>
+          <span><strong>Client-side only</strong> — Servers and other players cannot detect it. It has no effect on gameplay and cannot be used to gain information a player wouldn't otherwise have.</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">●</span>
+          <span><strong>Allowed on major PvP servers</strong> — Leg.GG's modification guidelines explicitly list "Any sound muffler mods" as allowed. OGCraft's mod policy confirms: "If a mod does not give you an unfair advantage over other players, it is allowed."</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <p style="font-size: 13px; color: var(--text-mute); margin-bottom: 12px;">
+          Verified by third-party rules and official terms:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a href="https://www.minecraft.net/en-us/eula" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-dim); text-decoration: none; padding: 10px 14px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.15s;">
+            <span style="color: var(--accent);">→</span>
+            <span>Minecraft End-User License Agreement (EULA)</span>
+          </a>
+          <a href="https://leg.gg/modification-guidelines/" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-dim); text-decoration: none; padding: 10px 14px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.15s;">
+            <span style="color: var(--accent);">→</span>
+            <span>Leg.GG Modification Guidelines — "Any sound muffler mods" allowed</span>
+          </a>
+          <a href="https://raw.githubusercontent.com/OGCraftMC/ogcraft-site/refs/heads/main/docs/Wiki/Mod%20Policy.md" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-dim); text-decoration: none; padding: 10px 14px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.15s;">
+            <span style="color: var(--accent);">→</span>
+            <span>OGCraft Client Mod Policy — "No unfair advantage" rule</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Installation</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num"></span>
+          <span>Install <strong>Fabric Loader</strong> for Minecraft 1.21</span>
+        </div>
+        <div class="step">
+          <span class="step-num"></span>
+          <span>Download and drop <code>Fabric API</code> into your <code>mods/</code> folder</span>
+        </div>
+        <div class="step">
+          <span class="step-num"></span>
+          <span>Download <code>silent-blasts-1.0.0.jar</code> and place it in the same <code>mods/</code> folder</span>
+        </div>
+        <div class="step">
+          <span class="step-num"></span>
+          <span>Launch Minecraft with the Fabric profile — done</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Source</h2>
+      <div class="download-action">
+        <div class="file-info">Open source on GitHub</div>
+        <!-- CHANGE: replace with your actual repo URL -->
+        <a class="btn-secondary" href="https://github.com/Akarsh-exe" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.72-4.04-1.61-4.04-1.61-.55-1.38-1.34-1.75-1.34-1.75-1.1-.75.08-.73.08-.73 1.21.09 1.85 1.24 1.85 1.24 1.08 1.85 2.83 1.31 3.52 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.4 3-.4 1.02 0 2.05.14 3.01.4 2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <span>© 2026 Akarsh Prajapati</span>
+      <a href="https://akarsh-portfolio.pages.dev" target="_blank" rel="noopener">← Back to portfolio</a>
+    </footer>
+
+  </div>
+
+</body>
+</html>
