@@ -26,7 +26,7 @@ anything server-side.
 ## Download
 
 Grab the latest jar from the [releases](https://github.com/Akarsh-exe/silent-blasts/releases) page,
-or download it directly from the [mod page](https://silent-blasts.netlify.app).
+or download it directly from the mod page (link coming soon).
 
 ## Fair play
 
